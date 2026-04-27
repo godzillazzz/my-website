@@ -3,328 +3,181 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium Quiz Embed</title>
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;700&family=Kanit:wght@300;500&display=swap" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <title>แบบทดสอบออนไลน์</title>
     <style>
-        :root {
-            --glass-bg: rgba(255, 255, 255, 0.95);
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --accent-color: #6c5ce7;
-            --success-color: #00b894;
-            --error-color: #ff7675;
-            --text-dark: #2d3436;
-            --text-light: #636e72;
-        }
-
-        * { box-sizing: border-box; }
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;700&display=swap');
 
         body {
             font-family: 'Sarabun', sans-serif;
-            background: var(--primary-gradient);
-            background-attachment: fixed;
+            background-color: #f4f7f6;
             margin: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            padding: 20px;
         }
 
-        #quiz-card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(10px);
-            width: 100%;
-            max-width: 550px;
-            padding: 40px;
-            border-radius: 30px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-            position: relative;
-            overflow: hidden;
-            animation: fadeIn 0.8s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Progress Section */
-        .header-meta {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-            font-weight: bold;
-            color: var(--accent-color);
-        }
-
-        .progress-container {
-            height: 10px;
-            background: #e0e0e0;
+        .quiz-container {
+            background-color: #fff;
             border-radius: 20px;
-            margin-bottom: 30px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 500px;
+            padding: 30px;
+            text-align: center;
         }
 
-        #progress-fill {
-            height: 100%;
-            background: var(--primary-gradient);
-            width: 0%;
-            border-radius: 20px;
-            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-        }
+        .question { margin-bottom: 20px; font-size: 1.2rem; font-weight: bold; }
 
-        /* Quiz Content */
-        h2 {
-            font-family: 'Kanit', sans-serif;
-            font-size: 1.4rem;
-            color: var(--text-dark);
-            margin-bottom: 25px;
-            line-height: 1.4;
-        }
+        .options { display: flex; flex-direction: column; gap: 10px; }
 
-        .option-item {
-            background: #fff;
-            border: 2px solid #edf2f7;
-            padding: 16px 20px;
-            margin-bottom: 12px;
-            border-radius: 15px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            font-size: 1.05rem;
-            color: var(--text-light);
-        }
-
-        .option-item:hover {
-            border-color: var(--accent-color);
-            background: #f8f9ff;
-            transform: translateX(5px);
-        }
-
-        .option-item.selected {
-            border-color: var(--accent-color);
-            background: var(--accent-color);
-            color: white;
-            box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3);
-        }
-
-        /* Navigation */
-        .nav-controls {
-            display: flex;
-            gap: 15px;
-            margin-top: 35px;
-        }
-
-        button {
-            flex: 1;
-            padding: 15px;
-            border: none;
-            border-radius: 12px;
-            font-family: 'Kanit', sans-serif;
-            font-size: 1rem;
-            font-weight: 500;
+        button.option-btn {
+            background-color: #ffffff;
+            border: 2px solid #7d2ae8;
+            border-radius: 10px;
+            padding: 12px;
             cursor: pointer;
             transition: all 0.3s;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 8px;
+            font-size: 1rem;
         }
 
-        .btn-back { background: #f1f2f6; color: var(--text-light); }
-        .btn-back:hover { background: #dfe6e9; }
+        button.option-btn:hover { background-color: #7d2ae8; color: white; }
 
-        .btn-next { background: var(--accent-color); color: white; }
-        .btn-next:hover { opacity: 0.9; box-shadow: 0 5px 15px rgba(108, 92, 231, 0.4); }
+        .hidden { display: none; }
 
-        button:disabled { opacity: 0.3; cursor: not-allowed; transform: none !important; }
-
-        /* Form & Result */
-        .input-group { margin-bottom: 15px; text-align: left; }
+        .form-group { text-align: left; margin-top: 20px; }
+        
         input {
             width: 100%;
-            padding: 15px;
-            border: 2px solid #eee;
-            border-radius: 12px;
-            font-size: 1rem;
-            outline: none;
-            transition: 0.3s;
-        }
-        input:focus { border-color: var(--accent-color); }
-
-        .badge-icon {
-            font-size: 4rem;
-            margin-bottom: 20px;
-            background: var(--primary-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            padding: 12px;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
         }
 
-        #deadline-ui { text-align: center; padding: 40px 0; }
+        .submit-btn {
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            width: 100%;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
 
-<div id="quiz-card">
-    <div id="deadline-ui" style="display:none;">
-        <i class="fas fa-hourglass-end badge-icon"></i>
-        <h2>ปิดรับคำตอบแล้ว</h2>
-        <p>ขออภัย กิจกรรมนี้สิ้นสุดเมื่อวันที่<br><strong id="deadline-txt"></strong></p>
+<div class="quiz-container" id="quiz-box">
+    <div id="question-screen">
+        <div class="question" id="question-text">กำลังโหลดคำถาม...</div>
+        <div class="options" id="options-container"></div>
     </div>
 
-    <div id="main-ui">
-        <div class="header-meta">
-            <span id="step-counter">ข้อที่ 1/5</span>
-            <span id="percent-label">0%</span>
-        </div>
-        <div class="progress-container">
-            <div id="progress-fill"></div>
-        </div>
-
-        <div id="question-area">
+    <div id="result-screen" class="hidden">
+        <h2 id="result-title">สรุปคะแนน</h2>
+        <p id="score-text"></p>
+        
+        <div id="form-container" class="hidden">
+            <p>ยินดีด้วย! คุณผ่านเกณฑ์ กรุณากรอกข้อมูลเพื่อรับเกียรติบัตร</p>
+            <div class="form-group">
+                <input type="text" id="userName" placeholder="ชื่อ-นามสกุล" required>
+                <input type="email" id="userEmail" placeholder="อีเมลของคุณ" required>
             </div>
-
-        <div class="nav-controls">
-            <button id="btn-prev" class="btn-back" onclick="move(-1)"><i class="fas fa-chevron-left"></i> กลับ</button>
-            <button id="btn-next" class="btn-next" onclick="move(1)">ถัดไป <i class="fas fa-chevron-right"></i></button>
+            <button class="submit-btn" onclick="sendData()">ส่งข้อมูลรับเกียรติบัตร</button>
         </div>
-    </div>
-
-    <div id="result-ui" style="display:none; text-align: center;">
-        <div id="pass-content">
-            <i class="fas fa-award badge-icon"></i>
-            <h2 id="final-score-txt"></h2>
-            <div class="input-group">
-                <input type="text" id="fullname" placeholder="ชื่อ-นามสกุล">
-            </div>
-            <div class="input-group">
-                <input type="email" id="email" placeholder="อีเมลสำหรับรับเกียรติบัตร">
-            </div>
-            <button class="btn-next" style="width:100%" onclick="handleFetch()">
-                <i class="fas fa-paper-plane"></i> ส่งข้อมูล
-            </button>
-        </div>
-        <div id="fail-content" style="display:none;">
-            <i class="fas fa-circle-xmark badge-icon" style="color: var(--error-color); -webkit-text-fill-color: var(--error-color);"></i>
-            <h2>ยังไม่ผ่านเกณฑ์</h2>
-            <p>คุณต้องได้คะแนน 70% ขึ้นไปเพื่อรับเกียรติบัตร</p>
-            <button class="btn-back" style="width:100%" onclick="location.reload()">ลองใหม่อีกครั้ง</button>
-        </div>
-        <div id="status-msg" style="margin-top: 20px; font-weight: bold; color: var(--success-color);"></div>
+        
+        <button id="retry-btn" class="submit-btn" style="background-color: #95a5a6;" onclick="location.reload()">ทำแบบทดสอบใหม่</button>
     </div>
 </div>
 
 <script>
-    // --- Configuration ---
-    const DEADLINE = "2026-12-31T23:59:59";
     const API_URL = 'https://godzillazzz.github.io/my-website/';
     const questions = [
-        { title: "AI ย่อมาจากคำว่าอะไร?", options: ["Artificial Intelligence", "Auto Interface", "Advanced Integration"], answer: 0 },
-        { title: "ซอฟต์แวร์ใดใช้ในการออกแบบสื่อการสอนได้ดีที่สุด?", options: ["Notepad", "Canva", "Calculator"], answer: 1 },
-        { title: "หน่วยความจำชั่วคราวของคอมพิวเตอร์คือ?", options: ["Harddisk", "CPU", "RAM"], answer: 2 },
-        { title: "ข้อใดคือภาษาที่ใช้เขียนโครงสร้างเว็บไซต์?", options: ["HTML", "Python", "SQL"], answer: 0 },
-        { title: "1 GB เท่ากับกี่ MB?", options: ["100 MB", "1024 MB", "512 MB"], answer: 1 }
+        { q: "1 + 1 เท่ากับเท่าไร?", a: ["2", "3", "4"], correct: 0 },
+        { q: "สีท้องฟ้าปกติคือสีอะไร?", a: ["แดง", "เขียว", "ฟ้า"], correct: 2 },
+        { q: "HTML ย่อมาจากอะไร?", a: ["Hyperlinks Tool", "HyperText Markup Language", "Home Tool Markup"], correct: 1 }
     ];
 
-    let currentStep = 0;
-    let userChoices = new Array(questions.length).fill(null);
+    let currentIdx = 0;
+    let score = 0;
 
-    // Initial Check
-    window.onload = () => {
-        const now = new Date();
-        const end = new Date(DEADLINE);
-        if (now > end) {
-            document.getElementById('main-ui').style.display = 'none';
-            document.getElementById('deadline-ui').style.display = 'block';
-            document.getElementById('deadline-txt').innerText = end.toLocaleString('th-TH');
-        } else {
-            render();
-        }
-    };
-
-    function render() {
-        const area = document.getElementById('question-area');
-        const q = questions[currentStep];
-        
-        document.getElementById('step-counter').innerText = `ข้อที่ ${currentStep + 1}/${questions.length}`;
-        const prog = ((currentStep + 1) / questions.length) * 100;
-        document.getElementById('progress-fill').style.width = prog + '%';
-        document.getElementById('percent-label').innerText = Math.round(prog) + '%';
-
-        let html = `<h2>${q.title}</h2>`;
-        q.options.forEach((opt, i) => {
-            const isSelected = userChoices[currentStep] === i ? 'selected' : '';
-            html += `<div class="option-item ${isSelected}" onclick="pick(${i})">${opt}</div>`;
+    function loadQuestion() {
+        const q = questions[currentIdx];
+        document.getElementById('question-text').innerText = q.q;
+        const container = document.getElementById('options-container');
+        container.innerHTML = '';
+        q.a.forEach((opt, i) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = opt;
+            btn.onclick = () => checkAnswer(i);
+            container.appendChild(btn);
         });
-        area.innerHTML = html;
-
-        document.getElementById('btn-prev').disabled = currentStep === 0;
-        document.getElementById('btn-next').innerHTML = currentStep === questions.length - 1 ? 'ดูผลคะแนน' : 'ถัดไป <i class="fas fa-chevron-right"></i>';
     }
 
-    window.pick = (val) => {
-        userChoices[currentStep] = val;
-        render();
-    };
-
-    window.move = (dir) => {
-        if (dir === 1 && userChoices[currentStep] === null) {
-            alert('โปรดเลือกคำตอบก่อนครับ'); return;
-        }
-        if (currentStep === questions.length - 1 && dir === 1) {
+    function checkAnswer(choice) {
+        if(choice === questions[currentIdx].correct) score++;
+        currentIdx++;
+        if(currentIdx < questions.length) {
+            loadQuestion();
+        } else {
             showResult();
-            return;
         }
-        currentStep += dir;
-        render();
-    };
+    }
 
     function showResult() {
-        let score = 0;
-        userChoices.forEach((ans, i) => { if(ans === questions[i].answer) score++; });
+        document.getElementById('question-screen').classList.add('hidden');
+        document.getElementById('result-screen').classList.remove('hidden');
+        
         const percent = (score / questions.length) * 100;
+        document.getElementById('score-text').innerText = `คุณได้คะแนน ${score}/${questions.length} (${percent}%)`;
 
-        document.getElementById('main-ui').style.display = 'none';
-        document.getElementById('result-ui').style.display = 'block';
-        document.getElementById('final-score-txt').innerText = `คุณได้คะแนน ${score} / ${questions.length}`;
-
-        if (percent < 70) {
-            document.getElementById('pass-content').style.display = 'none';
-            document.getElementById('fail-content').style.display = 'block';
+        if(percent >= 70) {
+            document.getElementById('form-container').classList.remove('hidden');
+            document.getElementById('retry-btn').classList.add('hidden');
         }
-        window.myFinalScore = score;
     }
 
-    window.handleFetch = async () => {
-        const name = document.getElementById('fullname').value;
-        const email = document.getElementById('email').value;
-        const msg = document.getElementById('status-msg');
+    async function sendData() {
+        const name = document.getElementById('userName').value;
+        const email = document.getElementById('userEmail').value;
 
-        if (!name || !email) { alert('กรุณากรอกข้อมูลให้ครบถ้วน'); return; }
+        if(!name || !email) return alert("กรุณากรอกข้อมูลให้ครบถ้วน");
 
-        msg.innerText = "กำลังเชื่อมต่อระบบ...";
-        
+        const payload = {
+            name: name,
+            email: email,
+            score: score
+        };
+
         try {
             const response = await fetch(API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, email, score: window.myFinalScore })
+                body: JSON.stringify(payload)
             });
-            
-            // หมายเหตุ: ตามเงื่อนไขถ้า response.status === 'success' (สมมติจาก JSON response)
-            // แต่ปกติ fetch response จะเช็ค .ok หรือ .json() ก่อน
+
+            // หมายเหตุ: GitHub Pages มักไม่รองรับ POST ตรงๆ อาจจะ Error 405 
+            // แต่โค้ดนี้เขียนดักจับสถานะ 'success' ตามที่คุณต้องการ
             const result = await response.json();
+            
             if (result.status === 'success') {
-                msg.innerText = "ระบบส่งเกียรติบัตรเข้าอีเมลของคุณเรียบร้อยแล้ว!";
+                alert("ระบบส่งเกียรติบัตรเข้าอีเมลของคุณเรียบร้อยแล้ว!");
+            } else {
+                alert("เกิดข้อผิดพลาดจากเซิร์ฟเวอร์");
             }
-        } catch (e) {
-            // เพื่อให้คุณเห็นผลลัพธ์ในหน้าจอทดสอบ (เนื่องจาก URL ตันทางอาจยังไม่มี API จริง)
-            msg.innerText = "ระบบส่งเกียรติบัตรเข้าอีเมลของคุณเรียบร้อยแล้ว!"; 
-            console.log("Request sent to: " + API_URL);
+        } catch (error) {
+            console.error("Error:", error);
+            // เพื่อการสาธิต: หากเชื่อมต่อไม่ได้ (เพราะ URL เป็น GitHub Pages) จะแจ้งเตือนตามปกติ
+            alert("ขออภัย: เว็บไซต์เป้าหมายอาจไม่รองรับการส่งข้อมูลแบบ POST (Method Not Allowed)");
         }
-    };
+    }
+
+    loadQuestion();
 </script>
 
 </body>
