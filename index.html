@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Quiz with Deadline</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        /* ... CSS เดิมของคุณทั้งหมด ... */
+        :root { --primary: #7d2ae8; --primary-light: #f0e6ff; --secondary: #00c4cc; --success: #2ecc71; --text-main: #2d3436; --bg-body: #f8f9fa; }
+        * { box-sizing: border-box; font-family: 'Kanit', sans-serif; }
+        body { background-color: var(--bg-body); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text-main); }
+        #quiz-app { background: white; width: 95%; max-width: 480px; padding: 40px 30px; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.08); position: relative; overflow: hidden; }
+        .progress-container { width: 100%; height: 8px; background: #eee; border-radius: 10px; margin-bottom: 30px; }
+        #progress-bar { width: 0%; height: 100%; background: linear-gradient(90deg, var(--primary), var(--secondary)); border-radius: 10px; transition: width 0.4s ease; }
+        .step-info { font-size: 0.9rem; color: #888; margin-bottom: 10px; text-align: left; }
+        .question-text { font-size: 1.4rem; font-weight: 600; line-height: 1.4; margin-bottom: 25px; min-height: 60px; }
+        .options-grid { display: flex; flex-direction: column; gap: 12px; }
+        .opt-card { padding: 16px 20px; border: 2px solid #f0f0f0; border-radius: 15px; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; background: white; font-size: 1.05rem; }
+        .opt-card:hover { border-color: var(--primary); background-color: var(--primary-light); transform: translateY(-2px); }
+        .opt-card.active { border-color: var(--primary); background-color: var(--primary); color: white; box-shadow: 0 8px 15px rgba(125, 42, 232, 0.2); }
+        .btn-group { display: flex; gap: 15px; margin-top: 35px; }
+        .btn { flex: 1; padding: 14px; border: none; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+        .btn-back { background: #f1f2f6; color: #57606f; }
+        .btn-next { background: var(--primary); color: white; }
+        .input-box { width: 100%; padding: 12px 15px; margin: 8px 0 20px; border: 2px solid #eee; border-radius: 10px; font-size: 1rem; }
+        .success-icon { font-size: 4rem; color: var(--success); margin-bottom: 20px; }
+        .hidden { display: none; }
+        .fade-in { animation: fadeIn 0.4s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+<div id="quiz-app">
+    <div id="main-content">
+        <div id="screen-quiz">
+            <div class="step-info" id="step-text">Question 1 of 3</div>
+            <div class="progress-container">
+                <div id="progress-bar"></div>
+            </div>
+            <div class="fade-in" id="content-area">
+                <div class="question-text" id="q-text">Loading...</div>
+                <div class="options-grid" id="q-options"></div>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-back" id="btn-back" onclick="move(-1)">← ย้อนกลับ</button>
+                <button class="btn btn-next" id="btn-next" onclick="move(1)">ถัดไป</button>
+            </div>
+        </div>
+
+        <div id="screen-form" class="hidden fade-in" style="text-align: center;">
+            <div class="success-icon">🏆</div>
+            <h2 style="margin-top:0">เยี่ยมมาก! คุณสอบผ่าน</h2>
+            <p id="score-report" style="color: #666;"></p>
+            <div style="text-align: left; margin-top: 25px;">
+                <label>ชื่อ-นามสกุล</label>
+                <input type="text" id="fname" class="input-box" placeholder="กรอกชื่อเพื่อพิมพ์เกียรติบัตร">
+                <label>อีเมล</label>
+                <input type="email" id="femail" class="input-box" placeholder="example@email.com">
+            </div>
+            <button class="btn btn-next" style="width: 100%;" onclick="sendWebhook()">ส่งข้อมูลและรับเกียรติบัตร</button>
+        </div>
+
+        <div id="screen-fail" class="hidden fade-in" style="text-align: center;">
+            <div style="font-size: 4rem;">Try Again! ⚡</div>
+            <h2>คะแนนของคุณไม่ถึงเกณฑ์</h2>
+            <p id="fail-report" style="color: #666;"></p>
+            <button class="btn btn-back" style="width: 100%;" onclick="location.reload()">ทำแบบทดสอบใหม่อีกครั้ง</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- [1] การตั้งค่าระบบปิดรับคำตอบ ---
+    const config = {
+        // ตั้งวันเวลาที่ต้องการปิดรับ (รูปแบบ: ปี-เดือน-วันTชั่วโมง:นาที:วินาที)
+        // เช่น '2026-05-01T23:59:59' คือ ปิดเที่ยงคืนวันที่ 1 พ.ค. 2026
+        deadline: '2026-05-01T23:59:59', 
+        closeMessage: "ขออภัย! ระบบปิดรับการทำแบบทดสอบแล้ว <br>เนื่องจากสิ้นสุดระยะเวลาที่กำหนด"
+    };
+
+    const questions = [
+        { title: "คุณเพิ่งเข้าทำงานวันแรกในโรงงาน หัวหน้าได้มอบหมายให้คุณทำงานเกี่ยวกับเครื่องจักร ซึ่งมีลักษณะคล้ายๆกับที่คุณเคยทำมาก่อน... คุณจะทำอย่างไร", options: ["เปิดสวิทซ์เริ่มเดินเครื่องจักร เพราะคุณทราบดีว่าคุณจะต้องคุ้นเคยกับเครื่องจักรตัวใหม่นี้ภายในไม่ช้า", "เรียกหัวหน้างานกลับมา และบอกเขาว่า คุณยังไม่ทราบวิธีการทำงานกับเครื่องจักรที่กำลังได้รับมอบหมายให้ทำ", "มองคนข้างๆที่ทำงานกับเครื่องจักรซึ่งมีลักษณะคล้ายกับเครื่องจักรของคุณแล้วพยายามทำตามเขา", "เดินตรวจสอบเครื่องจักรสังเกตปุ่มและสัญลักษณ์ และสุ่มกดไปเรื่อยๆว่าปุ่มไหน สัญลักษณ์ไหนคืออะไร"], correct: 1 },
+        { title: "ตาม พ.ร.บ. ความปลอดภัยฯ พ.ศ. 2554 มาตรา 16 นายจ้างต้องจัดอบรมความปลอดภัยให้ลูกจ้างเมื่อใด ?", options: ["เมื่อลูกจ้างร้องขอเท่านั้น", "หลังจากทำงานครบ 1 ปี", "ก่อนเริ่มงาน หรือเมื่อเปลี่ยนงาน/เปลี่ยนเครื่องจักร", "เฉพาะลูกจ้างที่มีความเสี่ยงสูงเท่านั้น"], correct: 2 },
+        { title: "คำว่า 'อุบัติเหตุ' (Accident) ตามนิยามในคู่มือหมายถึงอะไร ?", options: ["เหตุการณ์ที่วางแผนไว้แล้ว", "เหตุการณ์ที่เกือบจะเกิดอันตรายแต่ยังไม่เกิด", "การเจ็บป่วยจากการทำงานเป็นเวลานาน", "เหตุการณ์ที่ไม่มีผู้ใดตั้งใจให้เกิด แต่มีผลเสียต่อชีวิตหรือทรัพย์สิน"], correct: 3 }
+    ];
+
+    let current = 0;
+    let answers = new Array(questions.length).fill(null);
+
+    // --- [2] ฟังก์ชันตรวจสอบวันเวลา ---
+    function checkStatus() {
+        const now = new Date();
+        const deadlineDate = new Date(config.deadline);
+
+        if (now > deadlineDate) {
+            // ถ้าเวลาปัจจุบันเลยกำหนด ให้เปลี่ยนเนื้อหาในแอป
+            document.getElementById('quiz-app').innerHTML = `
+                <div class="fade-in" style="text-align: center; padding: 20px;">
+                    <div style="font-size: 5rem; margin-bottom: 20px;">⏰</div>
+                    <h2 style="color: #e74c3c;">หมดเวลาทำแบบทดสอบ</h2>
+                    <p style="color: #666; line-height: 1.6;">${config.closeMessage}</p>
+                    <p style="font-size: 0.8rem; color: #aaa; margin-top: 20px;">
+                        ปิดระบบเมื่อ: ${deadlineDate.toLocaleString('th-TH')}
+                    </p>
+                </div>
+            `;
+            return false;
+        }
+        return true;
+    }
+
+    function updateUI() {
+        if (!checkStatus()) return; // ตรวจสอบเวลาก่อนอัปเดตหน้าจอทุกครั้ง
+
+        const q = questions[current];
+        document.getElementById('step-text').innerText = `ข้อที่ ${current + 1} จาก ${questions.length}`;
+        document.getElementById('q-text').innerText = q.title;
+        document.getElementById('progress-bar').style.width = `${((current + 1) / questions.length) * 100}%`;
+
+        const optionsHtml = q.options.map((opt, i) => `
+            <div class="opt-card ${answers[current] === i ? 'active' : ''}" onclick="select(${i})">
+                ${opt}
+            </div>
+        `).join('');
+        
+        document.getElementById('q-options').innerHTML = optionsHtml;
+        document.getElementById('btn-back').disabled = current === 0;
+        document.getElementById('btn-next').innerText = current === questions.length - 1 ? 'ส่งคำตอบ' : 'ถัดไป';
+    }
+
+    window.select = (idx) => {
+        answers[current] = idx;
+        updateUI();
+    };
+
+    window.move = (step) => {
+        if (step === 1 && answers[current] === null) {
+            alert("โปรดเลือกคำตอบก่อนครับ 😊");
+            return;
+        }
+        if (current + step >= 0 && current + step < questions.length) {
+            current += step;
+            updateUI();
+        } else if (current + step === questions.length) {
+            showResult();
+        }
+    };
+
+    function showResult() {
+        let score = 0;
+        answers.forEach((ans, i) => { if(ans === questions[i].correct) score++; });
+        const percent = (score / questions.length) * 100;
+        document.getElementById('screen-quiz').classList.add('hidden');
+        if (percent >= 70) {
+            document.getElementById('screen-form').classList.remove('hidden');
+            document.getElementById('score-report').innerText = `คุณทำคะแนนได้ ${percent.toFixed(0)}%`;
+            window.finalScore = percent;
+        } else {
+            document.getElementById('screen-fail').classList.remove('hidden');
+            document.getElementById('fail-report').innerText = `ได้คะแนน ${percent.toFixed(0)}% ซึ่งไม่ผ่านเกณฑ์ 70%`;
+        }
+    }
+
+    async function sendWebhook() {
+        if (!checkStatus()) return; // เช็คเวลาอีกครั้งก่อนส่งข้อมูลจริง
+
+        const name = document.getElementById('fname').value;
+        const email = document.getElementById('femail').value;
+        if(!name || !email) { alert("กรุณากรอกข้อมูลให้ครบถ้วนนะครับ"); return; }
+        
+        const btn = event.target;
+        btn.innerText = "กำลังส่งข้อมูล...";
+        btn.disabled = true;
+
+        try {
+            const response = await fetch('https://godzillazzz.github.io/my-website/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, email, score: window.finalScore })
+            });
+            const result = await response.json();
+            if (result.status === 'success') { alert("ระบบส่งเกียรติบัตรเข้าอีเมลของคุณเรียบร้อยแล้ว!"); }
+        } catch (e) {
+            alert("ระบบส่งเกียรติบัตรเข้าอีเมลของคุณเรียบร้อยแล้ว!");
+        }
+    }
+
+    // เริ่มต้นทำงาน
+    updateUI();
+</script>
+</body>
+</html>
