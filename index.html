@@ -57,6 +57,30 @@
             color: white;
         }
 
+        /* ตกแต่งปุ่มที่เลือกไว้ */
+        button.selected {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            gap: 10px;
+        }
+
+        .btn-back {
+            border-color: #ccc;
+            color: #666;
+            flex: 1;
+        }
+
+        .btn-back:hover {
+            background: #eee;
+            color: #333;
+        }
+
         input[type="text"], input[type="email"] {
             width: 100%;
             padding: 12px;
@@ -93,6 +117,10 @@
         <h2 id="q-title">คำถามที่ 1</h2>
         <div class="question" id="q-text">กำลังโหลดคำถาม...</div>
         <div class="options" id="q-options"></div>
+        
+        <div class="nav-buttons">
+            <button id="prev-btn" class="btn-back hidden" onclick="prevQuestion()">ย้อนกลับ</button>
+        </div>
     </div>
 
     <div id="result-step" class="hidden">
@@ -120,25 +148,44 @@
     ];
 
     let currentQ = 0;
-    let score = 0;
+    let userAnswers = new Array(quizData.length).fill(null); // เก็บคำตอบที่เลือกไว้
 
     function loadQuestion() {
         const q = quizData[currentQ];
         document.getElementById('q-title').innerText = `คำถามที่ ${currentQ + 1}/${quizData.length}`;
         document.getElementById('q-text').innerText = q.q;
+        
         const optionsDiv = document.getElementById('q-options');
         optionsDiv.innerHTML = '';
         
         q.a.forEach((opt, index) => {
             const btn = document.createElement('button');
             btn.innerText = opt;
-            btn.onclick = () => checkAnswer(index);
+            
+            // แสดงสถานะว่าเคยตอบข้อนี้ไปแล้วหรือยัง
+            if (userAnswers[currentQ] === index) {
+                btn.classList.add('selected');
+            }
+
+            btn.onclick = () => selectAnswer(index);
             optionsDiv.appendChild(btn);
         });
+
+        // แสดง/ซ่อนปุ่มย้อนกลับ
+        const prevBtn = document.getElementById('prev-btn');
+        if (currentQ > 0) {
+            prevBtn.classList.remove('hidden');
+        } else {
+            prevBtn.classList.add('hidden');
+        }
     }
 
-    function checkAnswer(index) {
-        if(index === quizData[currentQ].correct) score++;
+    function selectAnswer(index) {
+        userAnswers[currentQ] = index; // บันทึกคำตอบ
+        nextQuestion();
+    }
+
+    function nextQuestion() {
         currentQ++;
         if(currentQ < quizData.length) {
             loadQuestion();
@@ -147,10 +194,28 @@
         }
     }
 
+    function prevQuestion() {
+        if (currentQ > 0) {
+            currentQ--;
+            loadQuestion();
+        }
+    }
+
+    function calculateScore() {
+        let score = 0;
+        userAnswers.forEach((answer, index) => {
+            if (answer === quizData[index].correct) {
+                score++;
+            }
+        });
+        return score;
+    }
+
     function showResult() {
         document.getElementById('quiz-step').classList.add('hidden');
         document.getElementById('result-step').classList.remove('hidden');
         
+        const score = calculateScore(); // คำนวณคะแนนตอนจบ
         const finalScore = Math.round((score / quizData.length) * 100);
         document.getElementById('score-text').innerText = `คุณได้คะแนน ${finalScore}/100`;
 
@@ -164,13 +229,11 @@
     async function sendData() {
         const name = document.getElementById('user-name').value;
         const email = document.getElementById('user-email').value;
+        const score = calculateScore();
         const finalScore = Math.round((score / quizData.length) * 100);
 
-        // 1. ตรวจสอบว่ากรอกข้อมูลครบไหม
         if(!name || !email) return alert("กรุณากรอกข้อมูลให้ครบถ้วน");
 
-        // 2. ตรวจสอบคะแนนอีกครั้ง (Double Check) 
-        // หากคะแนนไม่ถึง 70 จะไม่ดำเนินการส่ง API และไม่นับเลขเกียรติบัตร
         if (finalScore < 70) {
             alert("ขออภัย คะแนนของคุณไม่ผ่านเกณฑ์ 70% จึงไม่สามารถออกเกียรติบัตรได้");
             location.reload();
@@ -181,11 +244,10 @@
             name: name,
             email: email,
             score: finalScore,
-            status: "passed" // เพิ่มสถานะเข้าไปเพื่อให้ฝั่ง Google Script เช็คได้ง่ายขึ้น
+            status: "passed"
         };
 
         try {
-            // แสดงสถานะกำลังโหลด (Optional)
             const submitBtn = document.querySelector('.btn-submit');
             submitBtn.innerText = "กำลังส่งข้อมูล...";
             submitBtn.disabled = true;
