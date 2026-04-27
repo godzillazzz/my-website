@@ -166,33 +166,46 @@
         const email = document.getElementById('user-email').value;
         const finalScore = Math.round((score / quizData.length) * 100);
 
+        // 1. ตรวจสอบว่ากรอกข้อมูลครบไหม
         if(!name || !email) return alert("กรุณากรอกข้อมูลให้ครบถ้วน");
+
+        // 2. ตรวจสอบคะแนนอีกครั้ง (Double Check) 
+        // หากคะแนนไม่ถึง 70 จะไม่ดำเนินการส่ง API และไม่นับเลขเกียรติบัตร
+        if (finalScore < 70) {
+            alert("ขออภัย คะแนนของคุณไม่ผ่านเกณฑ์ 70% จึงไม่สามารถออกเกียรติบัตรได้");
+            location.reload();
+            return;
+        }
 
         const payload = {
             name: name,
             email: email,
-            score: finalScore
+            score: finalScore,
+            status: "passed" // เพิ่มสถานะเข้าไปเพื่อให้ฝั่ง Google Script เช็คได้ง่ายขึ้น
         };
 
         try {
-            // ใช้โหมด no-cors หาก Google Apps Script ไม่ได้ตั้งค่าอนุญาต CORS ไว้ 
-            // แต่แนะนำให้ Script ฝั่ง Google ส่ง Response เป็น JSON
-            const response = await fetch(API_URL, {
+            // แสดงสถานะกำลังโหลด (Optional)
+            const submitBtn = document.querySelector('.btn-submit');
+            submitBtn.innerText = "กำลังส่งข้อมูล...";
+            submitBtn.disabled = true;
+
+            await fetch(API_URL, {
                 method: 'POST',
-                mode: 'no-cors', // เปลี่ยนเป็น 'cors' หากฝั่ง Server รองรับ
+                mode: 'no-cors', 
                 cache: 'no-cache',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
 
-            // หมายเหตุ: เนื่องจาก Google Script มักติดปัญหา CORS 
-            // การแจ้งเตือนอาจต้องใช้การสมมติว่าสำเร็จหากไม่มี Error ในระดับ Network
             alert("ระบบส่งเกียรติบัตรเข้าอีเมลของคุณเรียบร้อยแล้ว!");
             location.reload();
             
         } catch (error) {
             console.error('Error:', error);
             alert("เกิดข้อผิดพลาดในการส่งข้อมูล");
+            submitBtn.disabled = false;
+            submitBtn.innerText = "ส่งข้อมูลรับเกียรติบัตร";
         }
     }
 
