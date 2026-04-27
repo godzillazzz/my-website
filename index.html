@@ -57,6 +57,20 @@
             color: white;
         }
 
+        /* ตกแต่งปุ่มย้อนกลับ */
+        .btn-back {
+            margin-top: 20px;
+            border: none;
+            background: #eee;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .btn-back:hover {
+            background: #ddd;
+            color: #333;
+        }
+
         input[type="text"], input[type="email"] {
             width: 100%;
             padding: 12px;
@@ -93,6 +107,7 @@
         <h2 id="q-title">คำถามที่ 1</h2>
         <div class="question" id="q-text">กำลังโหลดคำถาม...</div>
         <div class="options" id="q-options"></div>
+        <button id="back-btn" class="btn-back hidden" onclick="prevQuestion()">← ย้อนกลับไปข้อก่อนหน้า</button>
     </div>
 
     <div id="result-step" class="hidden">
@@ -120,51 +135,87 @@
     ];
 
     let currentQ = 0;
-    let score = 0;
+    // สร้าง Array ไว้เก็บคำตอบของผู้ใช้ (null คือยังไม่ได้ตอบ)
+    let userAnswers = new Array(quizData.length).fill(null);
 
     function loadQuestion() {
         const q = quizData[currentQ];
         document.getElementById('q-title').innerText = `คำถามที่ ${currentQ + 1}/${quizData.length}`;
         document.getElementById('q-text').innerText = q.q;
+        
         const optionsDiv = document.getElementById('q-options');
         optionsDiv.innerHTML = '';
         
         q.a.forEach((opt, index) => {
             const btn = document.createElement('button');
             btn.innerText = opt;
-            btn.onclick = () => checkAnswer(index);
+            // ถ้าเคยตอบข้อนี้ไปแล้ว ให้ไฮไลท์สีนิดหน่อยเพื่อให้รู้ว่าเคยเลือกอะไร (Optional)
+            if(userAnswers[currentQ] === index) {
+                btn.style.background = "var(--primary-color)";
+                btn.style.color = "white";
+            }
+            btn.onclick = () => selectAnswer(index);
             optionsDiv.appendChild(btn);
         });
+
+        // ควบคุมการแสดงผลปุ่มย้อนกลับ
+        const backBtn = document.getElementById('back-btn');
+        if (currentQ > 0) {
+            backBtn.classList.remove('hidden');
+        } else {
+            backBtn.classList.add('hidden');
+        }
     }
 
-    function checkAnswer(index) {
-        if(index === quizData[currentQ].correct) score++;
+    function selectAnswer(index) {
+        // เก็บคำตอบลงใน Array ตามดัชนีของคำถามปัจจุบัน
+        userAnswers[currentQ] = index;
+        
+        // ไปยังข้อถัดไป
         currentQ++;
         if(currentQ < quizData.length) {
             loadQuestion();
         } else {
-            showResult();
+            calculateAndShowResult();
         }
     }
 
-    function showResult() {
+    function prevQuestion() {
+        if (currentQ > 0) {
+            currentQ--;
+            loadQuestion();
+        }
+    }
+
+    function calculateAndShowResult() {
+        // คำนวณคะแนนใหม่ทั้งหมดจาก userAnswers
+        let finalScoreValue = 0;
+        userAnswers.forEach((answer, index) => {
+            if(answer === quizData[index].correct) {
+                finalScoreValue++;
+            }
+        });
+
         document.getElementById('quiz-step').classList.add('hidden');
         document.getElementById('result-step').classList.remove('hidden');
         
-        const finalScore = Math.round((score / quizData.length) * 100);
-        document.getElementById('score-text').innerText = `คุณได้คะแนน ${finalScore}/100`;
+        const scorePercentage = Math.round((finalScoreValue / quizData.length) * 100);
+        document.getElementById('score-text').innerText = `คุณได้คะแนน ${scorePercentage}/100`;
 
-        if(finalScore >= 70) {
+        if(scorePercentage >= 70) {
             document.getElementById('pass-form').classList.remove('hidden');
         } else {
             document.getElementById('fail-msg').classList.remove('hidden');
         }
+
+        // เก็บตัวแปรคะแนนไว้ใช้ในฟังก์ชันส่งข้อมูล
+        window.currentFinalScore = scorePercentage;
     }
 
     async function sendData() {
         const name = document.getElementById('user-name').value;
         const email = document.getElementById('user-email').value;
-        const finalScore = Math.round((score / quizData.length) * 100);
+        const finalScore = window.currentFinalScore;
 
         if(!name || !email) return alert("กรุณากรอกข้อมูลให้ครบถ้วน");
 
@@ -175,18 +226,14 @@
         };
 
         try {
-            // ใช้โหมด no-cors หาก Google Apps Script ไม่ได้ตั้งค่าอนุญาต CORS ไว้ 
-            // แต่แนะนำให้ Script ฝั่ง Google ส่ง Response เป็น JSON
             const response = await fetch(API_URL, {
                 method: 'POST',
-                mode: 'no-cors', // เปลี่ยนเป็น 'cors' หากฝั่ง Server รองรับ
+                mode: 'no-cors',
                 cache: 'no-cache',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
 
-            // หมายเหตุ: เนื่องจาก Google Script มักติดปัญหา CORS 
-            // การแจ้งเตือนอาจต้องใช้การสมมติว่าสำเร็จหากไม่มี Error ในระดับ Network
             alert("ระบบส่งเกียรติบัตรเข้าอีเมลของคุณเรียบร้อยแล้ว!");
             location.reload();
             
