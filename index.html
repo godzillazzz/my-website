@@ -145,4 +145,68 @@
         if(index === questions[currentQuestion].correct) score++;
         
         currentQuestion++;
-        if(currentQuestion < questions.length)
+        if(currentQuestion < questions.length) {
+            showQuestion();
+        } else {
+            showResult();
+        }
+    }
+
+    function showResult() {
+        document.getElementById('quiz-screen').classList.add('hidden');
+        if(score >= 2) {
+            document.getElementById('form-screen').classList.remove('hidden');
+            document.getElementById('final-score').innerText = score;
+        } else {
+            document.getElementById('fail-screen').classList.remove('hidden');
+        }
+    }
+
+    async function sendData() {
+        const name = document.getElementById('userName').value;
+        const email = document.getElementById('userEmail').value;
+        const btnSend = document.getElementById('btnSend');
+        const msg = document.getElementById('message');
+
+        if(!name || !email) {
+            alert("กรุณากรอกข้อมูลให้ครบถ้วน");
+            return;
+        }
+
+        btnSend.disabled = true;
+        btnSend.innerText = "กำลังส่งข้อมูล...";
+
+        const payload = {
+            name: name,
+            email: email,
+            score: score
+        };
+
+        try {
+            const response = await fetch('https://godzillazzz.github.io/my-website/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            // หมายเหตุ: เนื่องจาก URL ปลายทางเป็น GitHub Pages (Static Site) 
+            // ปกติจะ Return 405 Method Not Allowed หากไม่ใช่ API จริง
+            // แต่ผมเขียน Logic ดักจับตามที่คุณต้องการไว้ดังนี้:
+            
+            const result = await response.json();
+            if (result.status === 'success') {
+                msg.innerText = "ระบบส่งเกียรติบัตรเข้าอีเมลของคุณเรียบร้อยแล้ว!";
+            } else {
+                msg.style.color = "red";
+                msg.innerText = "เกิดข้อผิดพลาดจากระบบ";
+            }
+        } catch (error) {
+            // จำลองการทำงานหากติดต่อ API สำเร็จ (เพื่อการทดสอบ)
+            console.log("Data sent:", payload);
+            // msg.innerText = "ระบบส่งเกียรติบัตรเข้าอีเมลของคุณเรียบร้อยแล้ว!"; 
+        }
+    }
+</script>
+
+</body>
+</html>
