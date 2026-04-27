@@ -3,124 +3,218 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>แบบทดสอบออนไลน์</title>
+    <title>แบบทดสอบออนไลน์ | Modern Quiz</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #7d2ae8;
-            --secondary-color: #00c4cc;
-            --bg-color: #f4f7f6;
-            --text-color: #333;
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --secondary: #06b6d4;
+            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --white: #ffffff;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+        }
+
+        * {
+            box-sizing: border-box;
+            transition: all 0.3s ease;
         }
 
         body {
-            font-family: 'Kanit', sans-serif, system-ui;
-            background-color: var(--bg-color);
+            font-family: 'Sarabun', sans-serif;
+            background: var(--bg-gradient);
+            background-attachment: fixed;
             margin: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
+            color: var(--text-main);
         }
 
         #quiz-container {
-            background: white;
-            width: 90%;
-            max-width: 500px;
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            width: 95%;
+            max-width: 550px;
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
             text-align: center;
+            position: relative;
+            overflow: hidden;
         }
 
-        h2 { color: var(--primary-color); }
+        /* Progress Bar */
+        .progress-container {
+            width: 100%;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        #progress-bar {
+            height: 100%;
+            background: linear-gradient(to right, var(--secondary), var(--primary));
+            border-radius: 10px;
+            width: 0%;
+        }
 
-        .question { font-size: 1.2rem; margin-bottom: 20px; font-weight: 500; }
+        h2 { 
+            color: var(--primary); 
+            margin-top: 0;
+            font-weight: 600;
+        }
+
+        .question { 
+            font-size: 1.3rem; 
+            margin-bottom: 25px; 
+            line-height: 1.5;
+            color: var(--text-main);
+        }
 
         .options {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
         }
 
-        button {
-            padding: 12px 20px;
-            border: 2px solid var(--primary-color);
+        .option-btn {
+            padding: 15px 20px;
+            border: 2px solid #e5e7eb;
             background: white;
-            border-radius: 10px;
+            border-radius: 15px;
             cursor: pointer;
             font-size: 1rem;
-            transition: 0.3s;
+            text-align: left;
+            font-family: 'Sarabun', sans-serif;
+            position: relative;
         }
 
-        button:hover {
-            background: var(--primary-color);
+        .option-btn:hover {
+            border-color: var(--primary);
+            background: #f5f3ff;
+            transform: translateY(-2px);
+        }
+
+        .option-btn.selected {
+            background: var(--primary);
             color: white;
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
         }
 
-        /* ตกแต่งปุ่มย้อนกลับ */
+        /* Navigation Buttons */
+        .nav-controls {
+            margin-top: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
         .btn-back {
-            margin-top: 20px;
+            background: none;
             border: none;
-            background: #eee;
-            color: #666;
-            font-size: 0.9rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 0.95rem;
+            text-decoration: underline;
         }
 
-        .btn-back:hover {
-            background: #ddd;
-            color: #333;
-        }
+        .btn-back:hover { color: var(--primary); }
 
+        /* Form Styling */
         input[type="text"], input[type="email"] {
             width: 100%;
-            padding: 12px;
+            padding: 14px;
             margin: 10px 0;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            box-sizing: border-box;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        input[type="text"]:focus, input[type="email"]:focus {
+            border-color: var(--primary);
+        }
+
+        .btn-submit {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 15px;
+            width: 100%;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            cursor: pointer;
+            margin-top: 15px;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-submit:hover {
+            background: var(--primary-hover);
+            transform: scale(1.02);
         }
 
         .hidden { display: none; }
 
-        #result-area {
-            animation: fadeIn 0.5s ease;
+        /* Animations */
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
         }
+        .animate { animation: slideIn 0.4s ease-out; }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .btn-submit {
-            background: var(--secondary-color);
+        .score-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: var(--primary);
             color: white;
-            border: none;
-            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
             font-weight: bold;
+            margin: 0 auto 20px;
+            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
         }
     </style>
 </head>
 <body>
 
 <div id="quiz-container">
-    <div id="quiz-step">
-        <h2 id="q-title">คำถามที่ 1</h2>
-        <div class="question" id="q-text">กำลังโหลดคำถาม...</div>
-        <div class="options" id="q-options"></div>
-        <button id="back-btn" class="btn-back hidden" onclick="prevQuestion()">← ย้อนกลับไปข้อก่อนหน้า</button>
+    <div class="progress-container">
+        <div id="progress-bar"></div>
     </div>
 
-    <div id="result-step" class="hidden">
-        <h2 id="score-text"></h2>
+    <div id="quiz-step" class="animate">
+        <h2 id="q-title">คำถาม</h2>
+        <div class="question" id="q-text">กำลังโหลดคำถาม...</div>
+        <div class="options" id="q-options"></div>
+        
+        <div class="nav-controls">
+            <button id="back-btn" class="btn-back hidden" onclick="prevQuestion()">← ย้อนกลับ</button>
+            <span id="q-counter" style="color: var(--text-muted); font-size: 0.9rem;"></span>
+        </div>
+    </div>
+
+    <div id="result-step" class="hidden animate">
+        <div class="score-circle" id="score-val">0</div>
+        <h2 id="score-text">สรุปผลคะแนน</h2>
+        
         <div id="pass-form" class="hidden">
-            <p>ยินดีด้วยคุณสอบผ่าน! กรุณากรอกข้อมูลเพื่อรับเกียรติบัตร</p>
-            <input type="text" id="user-name" placeholder="ชื่อ-นามสกุล" required>
-            <input type="email" id="user-email" placeholder="อีเมลของคุณ" required>
+            <p style="color: var(--text-muted)">ยินดีด้วยคุณสอบผ่าน! กรุณากรอกข้อมูลเพื่อรับเกียรติบัตร</p>
+            <input type="text" id="user-name" placeholder="ชื่อ-นามสกุล">
+            <input type="email" id="user-email" placeholder="อีเมลของคุณ">
             <button class="btn-submit" onclick="sendData()">ส่งข้อมูลรับเกียรติบัตร</button>
         </div>
+
         <div id="fail-msg" class="hidden">
-            <p>เสียใจด้วย คะแนนของคุณไม่ถึง 70% ลองใหม่อีกครั้งนะครับ</p>
-            <button onclick="location.reload()">ทำแบบทดสอบใหม่</button>
+            <p style="color: var(--text-muted)">คะแนนของคุณยังไม่ถึงเกณฑ์ 70% พยายามอีกนิดนะ!</p>
+            <button class="btn-submit" style="background: var(--text-main);" onclick="location.reload()">ลองใหม่อีกครั้ง</button>
         </div>
     </div>
 </div>
@@ -129,55 +223,59 @@
     const API_URL = 'https://script.google.com/macros/s/AKfycbxWXTALSodZnCC0EceZNX7o5P3xb4RQdXM3mcDgeUlZU7KBRx0fO-TRPGouP0RgebC6/exec';
     
     const quizData = [
-        { q: "1 + 1 เท่ากับเท่าไร?", a: ["2", "3", "4", "5"], correct: 0 },
-        { q: "สีท้องฟ้าตอนกลางวันคือสีอะไร?", a: ["แดง", "เขียว", "ฟ้า", "เหลือง"], correct: 2 },
-        { q: "HTML ย่อมาจากอะไร?", a: ["Hyper Text Markup Language", "High Tech Multi Language", "Home Tool Markup Language"], correct: 0 }
+        { q: "คุณเพิ่งเข้าทำงานวันแรกในโรงงาน หัวหน้าได้มอบหมายให้คุณทำงานเกี่ยวกับเครื่องจักร ซึ่งมีลักษณะคล้ายๆกับที่คุณเคยทำมาก่อน (สถานที่ทำงานเก่า) แต่คุณไม่แน่ใจว่าจะทำงานกับเครื่องจักรนั้นได้ หัวหน้างานเข้าใจว่าคุณมีประสบการณ์มากกว่าทีคุณมีจริงๆ ดังนั้นเขาจึงสั่งให้คุณเริ่มทำงานให้ดีที่สุดเท่าทีจะทำได้ แล้วเขาก็เดินจากไป คุณจะทำอย่างไร", a: ["เปิดสวิทซ์เริ่มเดินเครื่องจักร เพราะคุณทราบดีว่าคุณจะต้องคุ้นเคยกับเครื่องจักรตัวใหม่นี้ภายในไม่ช้า", "เรียกหัวหน้างานกลับมา และบอกเขาว่า คุณยังไม่ทราบวิธีการทำงานกับเครื่องจักรที่กำลังได้รับมอบหมายให้ทำ", "มองคนข้างๆที่ทำงานกับเครื่องจักรซึ่งมีลักษณะคล้ายกับเครื่องจักรของคุณแล้วพยายามทำตามเขา", "เดินตรวจสอบเครื่องจักรสังเกตปุ่มและสัญลักษณ์ และสุ่มกดไปเรื่อยๆว่าปุ่มไหน สัญลักษณ์ไหนคืออะไร"], correct: 1 },
+
+        { q: "ตาม พ.ร.บ. ความปลอดภัยฯ พ.ศ. 2554 มาตรา 16 นายจ้างต้องจัดอบรมความปลอดภัยให้ลูกจ้างเมื่อใด ? ", a: ["เมื่อลูกจ้างร้องขอเท่านั้น", "ก่อนเริ่มงาน หรือเมื่อเปลี่ยนงาน/เปลี่ยนเครื่องจักร", "หลังจากทำงานครบ 1 ปี", "เฉพาะลูกจ้างที่มีความเสี่ยงสูงเท่านั้น"], correct: 1 },
+
+        { q: "คำว่า "อุบัติเหตุ" (Accident) ตามนิยามในคู่มือหมายถึงอะไร ? ", a: ["เหตุการณ์ที่วางแผนไว้แล้ว", "เหตุการณ์ที่ไม่มีผู้ใดตั้งใจให้เกิด แต่มีผลเสียต่อชีวิตหรือทรัพย์สิน", "เหตุการณ์ที่เกือบจะเกิดอันตรายแต่ยังไม่เกิด", "เหตุการณ์ที่เกือบจะเกิดอันตรายแต่ยังไม่เกิด"], correct: 1 }
     ];
 
     let currentQ = 0;
-    // สร้าง Array ไว้เก็บคำตอบของผู้ใช้ (null คือยังไม่ได้ตอบ)
     let userAnswers = new Array(quizData.length).fill(null);
 
     function loadQuestion() {
         const q = quizData[currentQ];
-        document.getElementById('q-title').innerText = `คำถามที่ ${currentQ + 1}/${quizData.length}`;
+        const stepContainer = document.getElementById('quiz-step');
+        
+        // Add animation class
+        stepContainer.classList.remove('animate');
+        void stepContainer.offsetWidth; // trigger reflow
+        stepContainer.classList.add('animate');
+
+        document.getElementById('q-title').innerText = `คำถามที่ ${currentQ + 1}`;
         document.getElementById('q-text').innerText = q.q;
+        document.getElementById('q-counter').innerText = `${currentQ + 1} จาก ${quizData.length}`;
+        
+        // Update Progress Bar
+        const progress = ((currentQ) / quizData.length) * 100;
+        document.getElementById('progress-bar').style.width = `${progress}%`;
         
         const optionsDiv = document.getElementById('q-options');
         optionsDiv.innerHTML = '';
         
         q.a.forEach((opt, index) => {
             const btn = document.createElement('button');
+            btn.className = `option-btn ${userAnswers[currentQ] === index ? 'selected' : ''}`;
             btn.innerText = opt;
-            // ถ้าเคยตอบข้อนี้ไปแล้ว ให้ไฮไลท์สีนิดหน่อยเพื่อให้รู้ว่าเคยเลือกอะไร (Optional)
-            if(userAnswers[currentQ] === index) {
-                btn.style.background = "var(--primary-color)";
-                btn.style.color = "white";
-            }
             btn.onclick = () => selectAnswer(index);
             optionsDiv.appendChild(btn);
         });
 
-        // ควบคุมการแสดงผลปุ่มย้อนกลับ
-        const backBtn = document.getElementById('back-btn');
-        if (currentQ > 0) {
-            backBtn.classList.remove('hidden');
-        } else {
-            backBtn.classList.add('hidden');
-        }
+        document.getElementById('back-btn').classList.toggle('hidden', currentQ === 0);
     }
 
     function selectAnswer(index) {
-        // เก็บคำตอบลงใน Array ตามดัชนีของคำถามปัจจุบัน
         userAnswers[currentQ] = index;
         
-        // ไปยังข้อถัดไป
-        currentQ++;
-        if(currentQ < quizData.length) {
-            loadQuestion();
-        } else {
-            calculateAndShowResult();
-        }
+        // หน่วงเวลานิดนึงให้เห็นว่ากดเลือกแล้ว
+        setTimeout(() => {
+            currentQ++;
+            if(currentQ < quizData.length) {
+                loadQuestion();
+            } else {
+                calculateAndShowResult();
+            }
+        }, 300);
     }
 
     function prevQuestion() {
@@ -188,19 +286,17 @@
     }
 
     function calculateAndShowResult() {
-        // คำนวณคะแนนใหม่ทั้งหมดจาก userAnswers
         let finalScoreValue = 0;
         userAnswers.forEach((answer, index) => {
-            if(answer === quizData[index].correct) {
-                finalScoreValue++;
-            }
+            if(answer === quizData[index].correct) finalScoreValue++;
         });
 
+        const scorePercentage = Math.round((finalScoreValue / quizData.length) * 100);
+        document.getElementById('progress-bar').style.width = `100%`;
         document.getElementById('quiz-step').classList.add('hidden');
         document.getElementById('result-step').classList.remove('hidden');
         
-        const scorePercentage = Math.round((finalScoreValue / quizData.length) * 100);
-        document.getElementById('score-text').innerText = `คุณได้คะแนน ${scorePercentage}/100`;
+        document.getElementById('score-val').innerText = `${scorePercentage}%`;
 
         if(scorePercentage >= 70) {
             document.getElementById('pass-form').classList.remove('hidden');
@@ -208,38 +304,32 @@
             document.getElementById('fail-msg').classList.remove('hidden');
         }
 
-        // เก็บตัวแปรคะแนนไว้ใช้ในฟังก์ชันส่งข้อมูล
         window.currentFinalScore = scorePercentage;
     }
 
     async function sendData() {
         const name = document.getElementById('user-name').value;
         const email = document.getElementById('user-email').value;
-        const finalScore = window.currentFinalScore;
+        const btn = document.querySelector('.btn-submit');
 
         if(!name || !email) return alert("กรุณากรอกข้อมูลให้ครบถ้วน");
 
-        const payload = {
-            name: name,
-            email: email,
-            score: finalScore
-        };
+        btn.innerText = "กำลังส่งข้อมูล...";
+        btn.disabled = true;
 
         try {
-            const response = await fetch(API_URL, {
+            await fetch(API_URL, {
                 method: 'POST',
                 mode: 'no-cors',
-                cache: 'no-cache',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+                body: JSON.stringify({ name, email, score: window.currentFinalScore })
             });
 
-            alert("ระบบส่งเกียรติบัตรเข้าอีเมลของคุณเรียบร้อยแล้ว!");
+            alert("เรียบร้อย! ระบบส่งเกียรติบัตรให้คุณแล้ว");
             location.reload();
-            
         } catch (error) {
-            console.error('Error:', error);
-            alert("เกิดข้อผิดพลาดในการส่งข้อมูล");
+            alert("เกิดข้อผิดพลาด ลองใหม่อีกครั้ง");
+            btn.innerText = "ส่งข้อมูลรับเกียรติบัตร";
+            btn.disabled = false;
         }
     }
 
