@@ -3,13 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>แบบทดสอบออนไลน์</title>
+    <title>Interactive Quiz for Canva</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;700&display=swap');
+        :root {
+            --primary-color: #7d2ae8;
+            --secondary-color: #00c4cc;
+            --bg-color: #f4f7f6;
+            --text-color: #333;
+        }
 
         body {
-            font-family: 'Sarabun', sans-serif;
-            background-color: #f4f7f6;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
             margin: 0;
             display: flex;
             justify-content: center;
@@ -17,168 +22,127 @@
             min-height: 100vh;
         }
 
-        .quiz-container {
-            background-color: #fff;
-            border-radius: 20px;
+        #quiz-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
             width: 90%;
             max-width: 500px;
-            padding: 30px;
             text-align: center;
         }
 
-        .question { margin-bottom: 20px; font-size: 1.2rem; font-weight: bold; }
+        .hidden { display: none; }
 
-        .options { display: flex; flex-direction: column; gap: 10px; }
+        h2 { color: var(--primary-color); }
 
-        button.option-btn {
-            background-color: #ffffff;
-            border: 2px solid #7d2ae8;
-            border-radius: 10px;
+        .option-btn {
+            display: block;
+            width: 100%;
             padding: 12px;
+            margin: 10px 0;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            background: white;
             cursor: pointer;
             transition: all 0.3s;
             font-size: 1rem;
         }
 
-        button.option-btn:hover { background-color: #7d2ae8; color: white; }
+        .option-btn:hover {
+            border-color: var(--primary-color);
+            background: #f0e6ff;
+        }
 
-        .hidden { display: none; }
-
-        .form-group { text-align: left; margin-top: 20px; }
-        
-        input {
+        input[type="text"], input[type="email"] {
             width: 100%;
             padding: 12px;
-            margin: 8px 0;
-            border: 1px solid #ddd;
-            border-radius: 8px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
             box-sizing: border-box;
         }
 
         .submit-btn {
-            background-color: #2ecc71;
+            background-color: var(--secondary-color);
             color: white;
             border: none;
-            padding: 15px 30px;
-            border-radius: 10px;
+            padding: 12px 25px;
+            border-radius: 5px;
             cursor: pointer;
-            font-size: 1.1rem;
+            font-weight: bold;
             width: 100%;
-            margin-top: 10px;
         }
+
+        .submit-btn:disabled { background-color: #ccc; }
+
+        #message { margin-top: 15px; font-weight: bold; color: #28a745; }
     </style>
 </head>
 <body>
 
-<div class="quiz-container" id="quiz-box">
-    <div id="question-screen">
-        <div class="question" id="question-text">กำลังโหลดคำถาม...</div>
-        <div class="options" id="options-container"></div>
+<div id="quiz-container">
+    <div id="start-screen">
+        <h2>แบบทดสอบรับเกียรติบัตร</h2>
+        <p>ตอบคำถามให้ถูกต้องเพื่อรับใบประกาศนียบัตร</p>
+        <button class="submit-btn" onclick="startQuiz()">เริ่มทำแบบทดสอบ</button>
     </div>
 
-    <div id="result-screen" class="hidden">
-        <h2 id="result-title">สรุปคะแนน</h2>
-        <p id="score-text"></p>
-        
-        <div id="form-container" class="hidden">
-            <p>ยินดีด้วย! คุณผ่านเกณฑ์ กรุณากรอกข้อมูลเพื่อรับเกียรติบัตร</p>
-            <div class="form-group">
-                <input type="text" id="userName" placeholder="ชื่อ-นามสกุล" required>
-                <input type="email" id="userEmail" placeholder="อีเมลของคุณ" required>
-            </div>
-            <button class="submit-btn" onclick="sendData()">ส่งข้อมูลรับเกียรติบัตร</button>
-        </div>
-        
-        <button id="retry-btn" class="submit-btn" style="background-color: #95a5a6;" onclick="location.reload()">ทำแบบทดสอบใหม่</button>
+    <div id="quiz-screen" class="hidden">
+        <h3 id="question-text">คำถามจะปรากฏที่นี่</h3>
+        <div id="options-container"></div>
+    </div>
+
+    <div id="form-screen" class="hidden">
+        <h2>ยินดีด้วย! คุณสอบผ่าน</h2>
+        <p>กรุณากรอกข้อมูลเพื่อรับเกียรติบัตร</p>
+        <p>คะแนนของคุณ: <span id="final-score"></span>/3</p>
+        <input type="text" id="userName" placeholder="ชื่อ-นามสกุล" required>
+        <input type="email" id="userEmail" placeholder="อีเมล" required>
+        <button class="submit-btn" id="btnSend" onclick="sendData()">ส่งข้อมูลรับเกียรติบัตร</button>
+        <div id="message"></div>
+    </div>
+
+    <div id="fail-screen" class="hidden">
+        <h2>พยายามใหม่อีกครั้ง!</h2>
+        <p>คุณได้คะแนนน้อยเกินไปสำหรับการรับเกียรติบัตร</p>
+        <button class="submit-btn" onclick="location.reload()">ลองอีกครั้ง</button>
     </div>
 </div>
 
 <script>
-    const API_URL = 'https://godzillazzz.github.io/my-website/';
     const questions = [
-        { q: "1 + 1 เท่ากับเท่าไร?", a: ["2", "3", "4"], correct: 0 },
-        { q: "สีท้องฟ้าปกติคือสีอะไร?", a: ["แดง", "เขียว", "ฟ้า"], correct: 2 },
-        { q: "HTML ย่อมาจากอะไร?", a: ["Hyperlinks Tool", "HyperText Markup Language", "Home Tool Markup"], correct: 1 }
+        { q: "HTML ย่อมาจากอะไร?", a: ["Hyperlinks and Text Markup Language", "Hyper Text Markup Language", "Home Tool Markup Language"], correct: 1 },
+        { q: "CSS ใช้สำหรับทำอะไร?", a: ["จัดการโครงสร้างข้อมูล", "ประมวลผลเซิร์ฟเวอร์", "ตกแต่งรูปแบบหน้าเว็บ"], correct: 2 },
+        { q: "คำสั่งใดใช้ประกาศตัวแปรใน JavaScript?", a: ["let", "define", "variable"], correct: 0 }
     ];
 
-    let currentIdx = 0;
+    let currentQuestion = 0;
     let score = 0;
 
-    function loadQuestion() {
-        const q = questions[currentIdx];
-        document.getElementById('question-text').innerText = q.q;
+    function startQuiz() {
+        document.getElementById('start-screen').classList.add('hidden');
+        document.getElementById('quiz-screen').classList.remove('hidden');
+        showQuestion();
+    }
+
+    function showQuestion() {
+        const qData = questions[currentQuestion];
+        document.getElementById('question-text').innerText = qData.q;
         const container = document.getElementById('options-container');
         container.innerHTML = '';
-        q.a.forEach((opt, i) => {
+        
+        qData.a.forEach((opt, index) => {
             const btn = document.createElement('button');
             btn.className = 'option-btn';
             btn.innerText = opt;
-            btn.onclick = () => checkAnswer(i);
+            btn.onclick = () => checkAnswer(index);
             container.appendChild(btn);
         });
     }
 
-    function checkAnswer(choice) {
-        if(choice === questions[currentIdx].correct) score++;
-        currentIdx++;
-        if(currentIdx < questions.length) {
-            loadQuestion();
-        } else {
-            showResult();
-        }
-    }
-
-    function showResult() {
-        document.getElementById('question-screen').classList.add('hidden');
-        document.getElementById('result-screen').classList.remove('hidden');
+    function checkAnswer(index) {
+        if(index === questions[currentQuestion].correct) score++;
         
-        const percent = (score / questions.length) * 100;
-        document.getElementById('score-text').innerText = `คุณได้คะแนน ${score}/${questions.length} (${percent}%)`;
-
-        if(percent >= 70) {
-            document.getElementById('form-container').classList.remove('hidden');
-            document.getElementById('retry-btn').classList.add('hidden');
-        }
-    }
-
-    async function sendData() {
-        const name = document.getElementById('userName').value;
-        const email = document.getElementById('userEmail').value;
-
-        if(!name || !email) return alert("กรุณากรอกข้อมูลให้ครบถ้วน");
-
-        const payload = {
-            name: name,
-            email: email,
-            score: score
-        };
-
-        try {
-            const response = await fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            // หมายเหตุ: GitHub Pages มักไม่รองรับ POST ตรงๆ อาจจะ Error 405 
-            // แต่โค้ดนี้เขียนดักจับสถานะ 'success' ตามที่คุณต้องการ
-            const result = await response.json();
-            
-            if (result.status === 'success') {
-                alert("ระบบส่งเกียรติบัตรเข้าอีเมลของคุณเรียบร้อยแล้ว!");
-            } else {
-                alert("เกิดข้อผิดพลาดจากเซิร์ฟเวอร์");
-            }
-        } catch (error) {
-            console.error("Error:", error);
-            // เพื่อการสาธิต: หากเชื่อมต่อไม่ได้ (เพราะ URL เป็น GitHub Pages) จะแจ้งเตือนตามปกติ
-            alert("ขออภัย: เว็บไซต์เป้าหมายอาจไม่รองรับการส่งข้อมูลแบบ POST (Method Not Allowed)");
-        }
-    }
-
-    loadQuestion();
-</script>
-
-</body>
-</html>
+        currentQuestion++;
+        if(currentQuestion < questions.length)
