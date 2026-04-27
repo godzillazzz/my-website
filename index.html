@@ -3,22 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modern Online Quiz</title>
+    <title>แบบทดสอบออนไลน์สมัยใหม่</title>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #6366f1;
             --primary-hover: #4f46e5;
             --secondary: #10b981;
-            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --card-bg: #ffffff;
+            --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             --text-main: #1f2937;
-            --text-muted: #6b7280;
-        }
-
-        * {
-            box-sizing: border-box;
-            transition: all 0.3s ease;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --danger: #ef4444;
         }
 
         body {
@@ -34,36 +29,35 @@
 
         #quiz-container {
             background: var(--card-bg);
-            width: 95%;
-            max-width: 480px;
-            padding: 40px 30px;
+            width: 90%;
+            max-width: 550px;
+            padding: 40px;
             border-radius: 24px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
             position: relative;
             overflow: hidden;
         }
 
-        /* Progress Bar */
         .progress-container {
-            position: absolute;
-            top: 0;
-            left: 0;
             width: 100%;
-            height: 6px;
+            height: 8px;
             background: #e5e7eb;
+            border-radius: 10px;
+            margin-bottom: 30px;
         }
 
-        #progress-bar {
+        .progress-bar {
             height: 100%;
-            width: 0%;
             background: var(--primary);
-            border-radius: 0 2px 2px 0;
+            border-radius: 10px;
+            width: 0%;
+            transition: width 0.4s ease;
         }
 
         h2 { 
-            color: var(--primary);
             font-weight: 600;
             margin-top: 0;
+            color: var(--primary);
             font-size: 1.5rem;
         }
 
@@ -71,155 +65,165 @@
             font-size: 1.25rem; 
             margin-bottom: 25px; 
             line-height: 1.5;
-            color: var(--text-main);
         }
 
         .options {
-            display: flex;
-            flex-direction: column;
+            display: grid;
             gap: 12px;
         }
 
         .option-btn {
             padding: 16px 20px;
-            border: 2px solid #f3f4f6;
-            background: #f9fafb;
-            border-radius: 14px;
+            border: 2px solid #e5e7eb;
+            background: white;
+            border-radius: 12px;
             cursor: pointer;
             font-size: 1rem;
             font-family: 'Kanit', sans-serif;
             text-align: left;
+            transition: all 0.2s;
             display: flex;
             align-items: center;
         }
 
         .option-btn:hover {
             border-color: var(--primary);
-            background: #eef2ff;
+            background: #f8fafc;
             transform: translateY(-2px);
         }
 
         .option-btn.selected {
+            border-color: var(--primary);
             background: var(--primary);
             color: white;
-            border-color: var(--primary);
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
         }
 
         .nav-buttons {
             display: flex;
-            justify-content: space-between;
             margin-top: 30px;
-            gap: 15px;
-        }
-
-        .btn-action {
-            padding: 12px 24px;
-            border-radius: 12px;
-            font-weight: 500;
-            cursor: pointer;
-            font-family: 'Kanit', sans-serif;
-            border: none;
-            flex: 1;
+            justify-content: flex-start;
         }
 
         .btn-back {
-            background: #f3f4f6;
-            color: var(--text-muted);
+            background: none;
+            border: none;
+            color: #64748b;
+            cursor: pointer;
+            text-decoration: underline;
+            font-size: 0.9rem;
         }
-
-        .btn-back:hover { background: #e5e7eb; }
 
         input[type="text"], input[type="email"] {
             width: 100%;
             padding: 14px;
-            margin: 10px 0;
-            border: 2px solid #e5e7eb;
+            margin: 8px 0 20px 0;
+            border: 1px solid #d1d5db;
             border-radius: 12px;
             font-size: 1rem;
+            box-sizing: border-box;
             outline: none;
+            transition: border-color 0.2s;
         }
 
-        input[type="text"]:focus, input[type="email"]:focus {
-            border-color: var(--primary);
-        }
+        input:focus { border-color: var(--primary); }
 
         .btn-submit {
             background: var(--secondary);
             color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 12px;
+            width: 100%;
             font-size: 1.1rem;
-            margin-top: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
         }
 
-        .btn-submit:hover {
-            filter: brightness(1.1);
-            transform: scale(1.02);
-        }
+        .btn-submit:hover { opacity: 0.9; }
 
         .hidden { display: none; }
 
-        /* Animations */
+        .score-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 20px;
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        /* ตกแต่งส่วนเวลาหมด */
+        .expired-icon {
+            font-size: 4rem;
+            color: var(--danger);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
         @keyframes slideIn {
             from { opacity: 0; transform: translateX(20px); }
             to { opacity: 1; transform: translateX(0); }
         }
 
-        .fade-in { animation: slideIn 0.4s ease-out; }
-
-        .score-circle {
-            width: 100px;
-            height: 100px;
-            background: #eef2ff;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px;
-            font-size: 2rem;
-            font-weight: bold;
-            color: var(--primary);
-            border: 4px solid var(--primary);
-        }
+        .animate { animation: slideIn 0.4s ease-out; }
     </style>
 </head>
 <body>
 
 <div id="quiz-container">
-    <div class="progress-container">
-        <div id="progress-bar"></div>
+    <div class="progress-container" id="progress-box">
+        <div class="progress-bar" id="progress-bar"></div>
     </div>
 
-    <div id="quiz-step" class="fade-in">
-        <h2 id="q-title">คำถามที่ 1</h2>
-        <div class="question" id="q-text">กำลังโหลดคำถาม...</div>
+    <div id="quiz-step">
+        <h2 id="q-title">คำถาม</h2>
+        <div class="question" id="q-text">กำลังโหลด...</div>
         <div class="options" id="q-options"></div>
         
         <div class="nav-buttons">
-            <button id="prev-btn" class="btn-action btn-back hidden" onclick="prevQuestion()">ย้อนกลับ</button>
+            <button id="prev-btn" class="btn-back hidden" onclick="prevQuestion()">← ย้อนกลับ</button>
         </div>
     </div>
 
-    <div id="result-step" class="hidden fade-in" style="text-align: center;">
-        <div class="score-circle" id="score-display">0</div>
-        <h2 id="score-text"></h2>
+    <div id="result-step" class="hidden animate">
+        <div class="score-circle" id="score-circle">0%</div>
+        <h2 id="score-text" style="text-align: center;">คะแนนของคุณ</h2>
         
         <div id="pass-form" class="hidden">
-            <p style="color: var(--text-muted)">ยินดีด้วยคุณสอบผ่าน! กรุณากรอกข้อมูลเพื่อรับเกียรติบัตร</p>
+            <p style="text-align: center; color: #4b5563;">เก่งมาก! กรุณากรอกข้อมูลเพื่อรับเกียรติบัตร</p>
             <input type="text" id="user-name" placeholder="ชื่อ-นามสกุล">
-            <input type="email" id="user-email" placeholder="อีเมลของคุณ">
-            <button class="btn-action btn-submit" onclick="sendData()">ส่งข้อมูลรับเกียรติบัตร</button>
+            <input type="email" id="user-email" placeholder="อีเมล">
+            <button class="btn-submit" onclick="sendData()">ส่งข้อมูลรับเกียรติบัตร อดใจรอนิดนึงนะ</button>
         </div>
 
-        <div id="fail-msg" class="hidden">
-            <p style="color: var(--text-muted)">พยายามอีกนิด! คะแนนของคุณยังไม่ถึงเกณฑ์ 70%</p>
-            <button class="btn-action btn-submit" onclick="location.reload()" style="background: var(--primary)">ลองใหม่อีกครั้ง</button>
+        <div id="fail-msg" class="hidden" style="text-align: center;">
+            <p>คะแนนยังไม่ถึงเกณฑ์ 70% พยายามอีกนิดนะ!</p>
+            <button class="btn-submit" style="background: var(--primary);" onclick="location.reload()">ลองใหม่อีกครั้ง</button>
         </div>
+    </div>
+
+    <div id="expired-step" class="hidden animate" style="text-align: center;">
+        <div class="expired-icon">⏳</div>
+        <h2>ปิดรับคำตอบแล้ว</h2>
+        <p style="color: #64748b;">ขออภัย แบบทดสอบนี้ได้สิ้นสุดระยะเวลาการทำแล้ว</p>
+        <p id="closed-time-info" style="font-size: 0.9rem; color: #94a3b8;"></p>
     </div>
 </div>
 
 <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbxWXTALSodZnCC0EceZNX7o5P3xb4RQdXM3mcDgeUlZU7KBRx0fO-TRPGouP0RgebC6/exec';
+    const API_URL = 'YOUR_GOOGLE_SCRIPT_URL_HERE';
     
+    // --- ตั้งค่าเวลาปิดรับคำตอบที่นี่ (รูปแบบ YYYY-MM-DDTHH:mm:ss) ---
+    const CLOSE_DATE = "2026-05-01T18:00:00"; 
+    // --------------------------------------------------------
+
     const quizData = [
         { q: "1 + 1 เท่ากับเท่าไร?", a: ["2", "3", "4", "5"], correct: 0 },
         { q: "สีท้องฟ้าตอนกลางวันคือสีอะไร?", a: ["แดง", "เขียว", "ฟ้า", "เหลือง"], correct: 2 },
@@ -229,15 +233,45 @@
     let currentQ = 0;
     let userAnswers = new Array(quizData.length).fill(null);
 
-    function loadQuestion() {
-        const q = quizData[currentQ];
-        const step = document.getElementById('quiz-step');
-        
-        // อัปเดต Progress Bar
-        const progress = ((currentQ) / quizData.length) * 100;
-        document.getElementById('progress-bar').style.width = `${progress}%`;
+    // ฟังก์ชันตรวจสอบการหมดเวลา
+    function checkExpiry() {
+        const now = new Date();
+        const expiry = new Date(CLOSE_DATE);
 
-        document.getElementById('q-title').innerText = `คำถามที่ ${currentQ + 1}/${quizData.length}`;
+        if (now > expiry) {
+            document.getElementById('progress-box').classList.add('hidden');
+            document.getElementById('quiz-step').classList.add('hidden');
+            document.getElementById('result-step').classList.add('hidden');
+            document.getElementById('expired-step').classList.remove('hidden');
+            
+            const dateStr = expiry.toLocaleDateString('th-TH', { 
+                year: 'numeric', month: 'long', day: 'numeric', 
+                hour: '2-digit', minute: '2-digit' 
+            });
+            document.getElementById('closed-time-info').innerText = `ปิดระบบเมื่อวันที่: ${dateStr}`;
+            return true; // หมดเวลา
+        }
+        return false; // ยังไม่หมดเวลา
+    }
+
+    function updateProgress() {
+        const percent = ((currentQ) / quizData.length) * 100;
+        document.getElementById('progress-bar').style.width = percent + '%';
+    }
+
+    function loadQuestion() {
+        // เช็คเวลาทุกครั้งที่เปลี่ยนข้อ (เผื่อหมดเวลาระหว่างทำ)
+        if (checkExpiry()) return;
+
+        updateProgress();
+        const q = quizData[currentQ];
+        const container = document.getElementById('quiz-step');
+        
+        container.classList.remove('animate');
+        void container.offsetWidth; 
+        container.classList.add('animate');
+
+        document.getElementById('q-title').innerText = `คำถามที่ ${currentQ + 1} / ${quizData.length}`;
         document.getElementById('q-text').innerText = q.q;
         
         const optionsDiv = document.getElementById('q-options');
@@ -246,12 +280,9 @@
         q.a.forEach((opt, index) => {
             const btn = document.createElement('button');
             btn.className = 'option-btn';
-            btn.innerHTML = `<span style="margin-right:10px; opacity:0.5">${String.fromCharCode(65 + index)}.</span> ${opt}`;
+            if (userAnswers[currentQ] === index) btn.classList.add('selected');
             
-            if (userAnswers[currentQ] === index) {
-                btn.classList.add('selected');
-            }
-
+            btn.innerHTML = `<span style="margin-right:15px; opacity:0.5">${String.fromCharCode(65 + index)}.</span> ${opt}`;
             btn.onclick = () => selectAnswer(index);
             optionsDiv.appendChild(btn);
         });
@@ -261,14 +292,11 @@
 
     function selectAnswer(index) {
         userAnswers[currentQ] = index;
-        
-        // เพิ่มลูกเล่นนิดหน่อยก่อนเปลี่ยนข้อ
         const btns = document.querySelectorAll('.option-btn');
+        btns.forEach(b => b.classList.remove('selected'));
         btns[index].classList.add('selected');
         
-        setTimeout(() => {
-            nextQuestion();
-        }, 300);
+        setTimeout(nextQuestion, 300);
     }
 
     function nextQuestion() {
@@ -287,22 +315,17 @@
         }
     }
 
-    function calculateScore() {
-        return userAnswers.reduce((score, ans, idx) => {
-            return ans === quizData[idx].correct ? score + 1 : score;
-        }, 0);
-    }
-
     function showResult() {
-        document.getElementById('progress-bar').style.width = `100%`;
+        document.getElementById('progress-box').classList.add('hidden');
         document.getElementById('quiz-step').classList.add('hidden');
         document.getElementById('result-step').classList.remove('hidden');
         
-        const score = calculateScore();
-        const finalScore = Math.round((score / quizData.length) * 100);
+        let score = 0;
+        userAnswers.forEach((ans, idx) => { if(ans === quizData[idx].correct) score++; });
         
-        document.getElementById('score-display').innerText = finalScore;
-        document.getElementById('score-text').innerText = `คุณทำได้ ${score} จาก ${quizData.length} ข้อ`;
+        const finalScore = Math.round((score / quizData.length) * 100);
+        document.getElementById('score-circle').innerText = `${finalScore}%`;
+        document.getElementById('score-text').innerText = `คุณทำได้ ${score} จาก ${quizData.length} คะแนน`;
 
         if(finalScore >= 70) {
             document.getElementById('pass-form').classList.remove('hidden');
@@ -314,34 +337,14 @@
     async function sendData() {
         const name = document.getElementById('user-name').value;
         const email = document.getElementById('user-email').value;
-        const score = calculateScore();
-        const finalScore = Math.round((score / quizData.length) * 100);
-
         if(!name || !email) return alert("กรุณากรอกข้อมูลให้ครบถ้วน");
-
-        const submitBtn = document.querySelector('.btn-submit');
-        submitBtn.innerText = "กำลังส่งข้อมูล...";
-        submitBtn.disabled = true;
-
-        try {
-            await fetch(API_URL, {
-                method: 'POST',
-                mode: 'no-cors', 
-                cache: 'no-cache',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, email, score: finalScore, status: "passed" })
-            });
-
-            alert("ระบบส่งเกียรติบัตรเข้าอีเมลของคุณเรียบร้อยแล้ว!");
-            location.reload();
-        } catch (error) {
-            alert("เกิดข้อผิดพลาด แต่เราได้รับข้อมูลของคุณแล้ว");
-            submitBtn.disabled = false;
-            submitBtn.innerText = "ส่งข้อมูลรับเกียรติบัตร";
-        }
+        alert("จำลองการส่งข้อมูล: " + name + " (" + email + ")");
     }
 
-    loadQuestion();
+    // เริ่มการทำงาน
+    if (!checkExpiry()) {
+        loadQuestion();
+    }
 </script>
 
 </body>
