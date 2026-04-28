@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>แบบทดสอบออนไลน์ระดับพรีเมียม</title>
+    <title>แบบทดสอบออนไลน์ระดับพรีเมียม (Random Edition)</title>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -115,7 +115,6 @@
             text-align: center !important;
         }
 
-        /* ตกแต่งปุ่มถัดไปใหม่ */
         .btn-next {
             background: var(--primary-gradient);
             color: white;
@@ -231,14 +230,38 @@
 
     const API_URL = 'https://script.google.com/macros/s/AKfycbxWXTALSodZnCC0EceZNX7o5P3xb4RQdXM3mcDgeUlZU7KBRx0fO-TRPGouP0RgebC6/exec';
     
-    const quizData = [
-        { q: "1 + 1 เท่ากับเท่าไร?", a: ["2", "3", "4", "5"], correct: 0 },
-        { q: "สีท้องฟ้าตอนกลางวันคือสีอะไร?", a: ["แดง", "เขียว", "ฟ้า", "เหลือง"], correct: 2 },
-        { q: "HTML ย่อมาจากอะไร?", a: ["Hyper Text Markup Language", "High Tech Multi Language", "Home Tool Markup Language"], correct: 0 }
+    // ข้อมูลดิบ
+    const rawData = [
+        { q: "1 + 1 เท่ากับเท่าไร?", a: ["2", "3", "4", "5"], correct: "2" },
+        { q: "สีท้องฟ้าตอนกลางวันคือสีอะไร?", a: ["แดง", "เขียว", "ฟ้า", "เหลือง"], correct: "ฟ้า" },
+        { q: "HTML ย่อมาจากอะไร?", a: ["Hyper Text Markup Language", "High Tech Multi Language", "Home Tool Markup Language"], correct: "Hyper Text Markup Language" }
     ];
 
+    let quizData = [];
     let currentQ = 0;
-    let userAnswers = new Array(quizData.length).fill(null);
+    let userAnswers = [];
+
+    // ฟังก์ชันสำหรับสุ่มอาเรย์ (Fisher-Yates Shuffle)
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    // เตรียมข้อสอบแบบสุ่ม
+    function prepareQuiz() {
+        // 1. สุ่มลำดับคำถาม
+        quizData = shuffleArray([...rawData]);
+        
+        // 2. สุ่มตัวเลือกในแต่ละคำถาม
+        quizData.forEach(item => {
+            item.a = shuffleArray([...item.a]);
+        });
+
+        userAnswers = new Array(quizData.length).fill(null);
+    }
 
     function checkDeadline() {
         const now = new Date();
@@ -280,14 +303,11 @@
             optionsDiv.appendChild(btn);
         });
 
-        // จัดการการแสดงผลปุ่มนำทาง
         const prevBtn = document.getElementById('prev-btn');
         const nextBtn = document.getElementById('next-btn');
 
-        // แสดงปุ่มย้อนกลับถ้าไม่ใช่ข้อแรก
         currentQ > 0 ? prevBtn.classList.remove('hidden') : prevBtn.classList.add('hidden');
         
-        // เปลี่ยนข้อความปุ่มถัดไปในข้อสุดท้าย
         if (currentQ === quizData.length - 1) {
             nextBtn.innerText = "ส่งคำตอบ";
         } else {
@@ -297,19 +317,16 @@
 
     function selectAnswer(index) {
         userAnswers[currentQ] = index;
-        // อัปเดต UI ทันทีที่เลือก
         const btns = document.querySelectorAll('#q-options button');
         btns.forEach((b, i) => {
             if(i === index) b.classList.add('selected');
             else b.classList.remove('selected');
         });
         
-        // หน่วงเวลาเล็กน้อยแล้วไปข้อถัดไปอัตโนมัติ (หรือจะเอาออกเพื่อให้กด "ถัดไป" เองก็ได้)
         setTimeout(nextQuestion, 400); 
     }
 
     function nextQuestion() {
-        // ตรวจสอบว่าเลือกคำตอบหรือยังก่อนไปข้อถัดไป (Optional)
         if (userAnswers[currentQ] === null) {
             alert("กรุณาเลือกคำตอบก่อนไปข้อถัดไป");
             return;
@@ -331,7 +348,17 @@
     }
 
     function calculateScore() {
-        return userAnswers.reduce((score, ans, idx) => ans === quizData[idx].correct ? score + 1 : score, 0);
+        let score = 0;
+        quizData.forEach((q, idx) => {
+            const userChoiceIndex = userAnswers[idx];
+            if (userChoiceIndex !== null) {
+                const userChoiceText = q.a[userChoiceIndex];
+                if (userChoiceText === q.correct) {
+                    score++;
+                }
+            }
+        });
+        return score;
     }
 
     function showResult() {
@@ -383,7 +410,9 @@
         }
     }
 
+    // เริ่มต้นโปรแกรม
     if (!checkDeadline()) {
+        prepareQuiz();
         loadQuestion();
     }
 </script>
