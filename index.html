@@ -38,7 +38,6 @@
             overflow: hidden;
         }
 
-        /* Progress Bar */
         .progress-container {
             width: 100%;
             height: 8px;
@@ -116,6 +115,16 @@
             text-align: center !important;
         }
 
+        /* ตกแต่งปุ่มถัดไปใหม่ */
+        .btn-next {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            flex: 1;
+            text-align: center !important;
+            font-weight: 500;
+        }
+
         input[type="text"], input[type="email"] {
             width: 100%;
             padding: 14px;
@@ -145,7 +154,6 @@
 
         .btn-submit:disabled { opacity: 0.7; cursor: not-allowed; }
 
-        /* Animations */
         @keyframes slideIn {
             from { opacity: 0; transform: translateX(20px); }
             to { opacity: 1; transform: translateX(0); }
@@ -191,6 +199,7 @@
             
             <div class="nav-buttons">
                 <button id="prev-btn" class="btn-back hidden" onclick="prevQuestion()">← ย้อนกลับ</button>
+                <button id="next-btn" class="btn-next" onclick="nextQuestion()">ถัดไป →</button>
             </div>
         </div>
 
@@ -217,7 +226,6 @@
 </div>
 
 <script>
-    // --- ตั้งค่าเวลาปิดรับคำตอบ ---
     const DEADLINE_DATE = "2027-12-31"; 
     const DEADLINE_TIME = "16:30";      
 
@@ -254,7 +262,7 @@
         updateProgressBar();
         const qStep = document.getElementById('quiz-step');
         qStep.classList.remove('fade-in');
-        void qStep.offsetWidth; // Trigger reflow
+        void qStep.offsetWidth; 
         qStep.classList.add('fade-in');
 
         const q = quizData[currentQ];
@@ -272,16 +280,41 @@
             optionsDiv.appendChild(btn);
         });
 
+        // จัดการการแสดงผลปุ่มนำทาง
         const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+
+        // แสดงปุ่มย้อนกลับถ้าไม่ใช่ข้อแรก
         currentQ > 0 ? prevBtn.classList.remove('hidden') : prevBtn.classList.add('hidden');
+        
+        // เปลี่ยนข้อความปุ่มถัดไปในข้อสุดท้าย
+        if (currentQ === quizData.length - 1) {
+            nextBtn.innerText = "ส่งคำตอบ";
+        } else {
+            nextBtn.innerText = "ถัดไป →";
+        }
     }
 
     function selectAnswer(index) {
         userAnswers[currentQ] = index;
-        setTimeout(nextQuestion, 300); // ดีเลย์เล็กน้อยเพื่อให้เห็น Effect การเลือก
+        // อัปเดต UI ทันทีที่เลือก
+        const btns = document.querySelectorAll('#q-options button');
+        btns.forEach((b, i) => {
+            if(i === index) b.classList.add('selected');
+            else b.classList.remove('selected');
+        });
+        
+        // หน่วงเวลาเล็กน้อยแล้วไปข้อถัดไปอัตโนมัติ (หรือจะเอาออกเพื่อให้กด "ถัดไป" เองก็ได้)
+        setTimeout(nextQuestion, 400); 
     }
 
     function nextQuestion() {
+        // ตรวจสอบว่าเลือกคำตอบหรือยังก่อนไปข้อถัดไป (Optional)
+        if (userAnswers[currentQ] === null) {
+            alert("กรุณาเลือกคำตอบก่อนไปข้อถัดไป");
+            return;
+        }
+
         currentQ++;
         if(currentQ < quizData.length) {
             loadQuestion();
